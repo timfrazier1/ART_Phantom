@@ -1,0 +1,2051 @@
+{
+    "appid": "005e9bff-dfd2-40c8-9845-e32b438c2e93",
+    "name": "Atomic Red Team",
+    "description": "Pull a list of currently available modules from Red Canary's Atomic Red Team github site and have them available to use in downstream actions, usually through Phantom Windows Remote Management app or Phantom SSH app.",
+    "type": "information",
+    "product_vendor": "Red Canary",
+    "logo": "atomicredteam.png",
+    "logo_dark": "atomicredteam_dark.png",
+    "product_name": "Atomic Red Team",
+    "product_version_regex": ".*",
+    "publisher": "Phantom",
+    "license": "Copyright (c) Phantom, 2018",
+    "app_version": "1.0.0",
+    "utctime_updated": "2018-05-31T18:33:39.334215Z",
+    "package_name": "phantom_atomicredteam",
+    "main_module": "atomicredteam_connector.pyc",
+    "min_phantom_version": "3.5.188",
+    "app_wizard_version": "1.0.0",
+    "configuration": {
+        "base_url": {
+            "description": "Repo URL for cloning",
+            "data_type": "string",
+            "required": true,
+            "value_list": [],
+            "default": "https://github.com/redcanaryco/atomic-red-team.git",
+            "order": 0
+        },
+        "verify_cert": {
+            "description": "Whether to verify Repo URL",
+            "data_type": "boolean",
+            "required": true,
+            "default": true,
+            "order": 1
+        }
+    },
+    "actions": [
+        {
+            "action": "test connectivity",
+            "identifier": "test_connectivity",
+            "description": "Initialize the Atomic Red Team Repository on Phantom - RUN THIS FIRST",
+            "verbose": "",
+            "parameters": {},
+            "output": [],
+            "type": "test",
+            "read_only": true,
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "format command",
+            "identifier": "format_command",
+            "description": "Format a command from a module to run properly",
+            "verbose": "",
+            "type": "generic",
+            "read_only": false,
+            "parameters": {
+                "attack_id": {
+                    "description": "MITRE ATT@CK ID for technique (e.g. T1033)",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "mitre attack id"
+                    ],
+                    "order": 0
+                },
+                "supported_os": {
+                    "description": "OS to format command for",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": false,
+                    "value_list": [
+                        "windows",
+                        "macos",
+                        "linux"
+                    ],
+                    "order": 1
+                },
+                "input_arguments": {
+                    "description": "JSON of input arguments",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": false,
+                    "order": 2
+                },
+                "use_arg_defaults": {
+                    "description": "Use the input defaults for test",
+                    "data_type": "boolean",
+                    "required": false,
+                    "primary": false,
+                    "default": true,
+                    "order": 3
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.executor.command",
+                    "data_type": "string",
+                    "column_name": "Formatted Command",
+                    "column_order": 3,
+                    "example_values": [
+                        "cmd.exe /c \"net use \\\\Target\\C$ P@ssw0rd1 /u:DOMAIN\\Administrator\"\n"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.executor.name",
+                    "data_type": "string",
+                    "column_name": "Shell Type",
+                    "column_order": 2,
+                    "example_values": [
+                        "command_prompt"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.attack_technique",
+                    "data_type": "string",
+                    "column_name": "Attack ID",
+                    "column_order": 0,
+                    "contains": [
+                        "mitre attack id"
+                    ],
+                    "example_values": [
+                        "T1077"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Total tests: 1"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.supported_os",
+                    "data_type": "string",
+                    "column_name": "Supported OS",
+                    "column_order": 1,
+                    "example_values": [
+                        "windows"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.attack_id",
+                    "data_type": "string",
+                    "contains": [
+                        "mitre attack id"
+                    ],
+                    "example_values": [
+                        "T1077"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.use_arg_defaults",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.total tests",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "render": {
+                "type": "table"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "get module",
+            "identifier": "get_module",
+            "description": "Get a particular module by attack technique ID",
+            "verbose": "",
+            "type": "generic",
+            "read_only": false,
+            "parameters": {
+                "attack_id": {
+                    "description": "MITRE ATT@CK ID for technique (e.g. T1033)",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "mitre attack id"
+                    ],
+                    "order": 0
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.description",
+                    "data_type": "string",
+                    "column_name": "Description",
+                    "column_order": 1,
+                    "example_values": [
+                        "Regsvr32.exe is a command-line program used to register and unregister OLE controls\n",
+                        "Connecting To Remote Shares\n"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.input_arguments.filename.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "Regsvr32.sct"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.input_arguments.filename.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.input_arguments.filename.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Name of the local file, include path."
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.name",
+                    "data_type": "string",
+                    "column_name": "Test Name",
+                    "column_order": 0,
+                    "example_values": [
+                        "Regsvr32 local COM scriptlet execution",
+                        "TODO"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.supported_platforms",
+                    "data_type": "string",
+                    "column_name": "Platform",
+                    "column_order": 2,
+                    "example_values": [
+                        "windows"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.executor.command",
+                    "data_type": "string",
+                    "column_name": "Executor",
+                    "column_order": 4,
+                    "example_values": [
+                        "regsvr32.exe /s /u /i:#{filename} scrobj.dll\n",
+                        "cmd.exe /c \"net use \\\\#{computer_name}\\${share_name} #{password} /u:#{user_name}\"\n"
+                    ],
+                    "contains": [
+                        "file name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.executor.name",
+                    "data_type": "string",
+                    "column_name": "Shell",
+                    "column_order": 3,
+                    "example_values": [
+                        "command_prompt"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.attack_technique",
+                    "data_type": "string",
+                    "column_name": "Attack ID",
+                    "column_order": 5,
+                    "contains": [
+                        "mitre attack id"
+                    ],
+                    "example_values": [
+                        "T1117",
+                        "T1077"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.input_arguments.url.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "http://www.example.com/file.sct"
+                    ],
+                    "contains": [
+                        "url"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.input_arguments.url.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Url"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.input_arguments.url.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "URL to hosted sct file"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.input_arguments.dll_name.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "payload.dll"
+                    ],
+                    "contains": [
+                        "file name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.input_arguments.dll_name.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.input_arguments.dll_name.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Name of DLL to Execute, DLL Should export DllRegisterServer"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Total techniques: 3",
+                        "Total tests: 1"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.attack_id",
+                    "data_type": "string",
+                    "contains": [
+                        "mitre attack id"
+                    ],
+                    "example_values": [
+                        "T1117",
+                        "T1077"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.total techniques",
+                    "data_type": "numeric",
+                    "example_values": [
+                        3
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.input_arguments.password.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "P@ssw0rd1"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.input_arguments.password.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "String"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.input_arguments.password.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Password"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.input_arguments.user_name.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "DOMAIN\\Administrator"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.input_arguments.user_name.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "String"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.input_arguments.user_name.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Username"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.input_arguments.computer_name.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "Target"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.input_arguments.computer_name.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "String"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.input_arguments.computer_name.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Target Computer Name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.input_arguments.share_name.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "C$"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.input_arguments.share_name.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "String"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.input_arguments.share_name.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Examples C$, IPC$, Admin$"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.total tests",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "render": {
+                "type": "table"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "list modules",
+            "identifier": "list_modules",
+            "description": "List all available modules in current repo",
+            "verbose": "",
+            "type": "generic",
+            "read_only": false,
+            "parameters": {},
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Total techniques: 95"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.display_name",
+                    "data_type": "string",
+                    "column_name": "Display Name",
+                    "column_order": 1,
+                    "example_values": [
+                        "Screen Capture"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.executor.command",
+                    "data_type": "string",
+                    "column_name": "Execution Command",
+                    "column_order": 4,
+                    "example_values": [
+                        "screencapture"
+                    ],
+                    "contains": [
+                        "file path",
+                        "file name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.executor.name",
+                    "data_type": "string",
+                    "column_name": "Execution Name",
+                    "column_order": 3,
+                    "example_values": [
+                        "bash"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.supported_platforms",
+                    "data_type": "string",
+                    "example_values": [
+                        "windows"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.description",
+                    "data_type": "string",
+                    "column_name": "Description",
+                    "column_order": 2,
+                    "example_values": [
+                        "Use screencapture command to collect a full desktop screenshot\n"
+                    ],
+                    "contains": [
+                        "url",
+                        "file name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.output_file.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "desktop.png"
+                    ],
+                    "contains": [
+                        "file path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.output_file.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.output_file.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "xxx\n"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "Screencapture"
+                    ],
+                    "contains": [
+                        "file name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.attack_technique",
+                    "data_type": "string",
+                    "column_name": "Attack ID",
+                    "column_order": 0,
+                    "contains": [
+                        "mitre attack id"
+                    ],
+                    "example_values": [
+                        "T1113"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.executor.steps",
+                    "data_type": "string",
+                    "example_values": [
+                        "1. Place the following file (com.example.hello) in /System/Library/LaunchDaemons or /Library/LaunchDaemons\n2.\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\">\n<dict>\n    <key>Label</key>\n    <string>com.example.hello</string>\n    <key>ProgramArguments</key>\n    <array>\n        <string>hello</string>\n        <string>world</string>\n    </array>\n    <key>KeepAlive</key>\n    <true/>\n</dict>\n</plist>\n"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.computer_name.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "computer1"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.computer_name.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "strong"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.computer_name.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Name of remote computer"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.node.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "192.168.0.1"
+                    ],
+                    "contains": [
+                        "ip"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.node.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "String"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.node.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Ip Address"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.service_search_string.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "sql server"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.service_search_string.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "String"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.service_search_string.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Name Of Service"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.user_name.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "APT"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.user_name.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "string"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.user_name.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "username to add"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.service_name.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "svchost.exe"
+                    ],
+                    "contains": [
+                        "file name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.service_name.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "string"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.service_name.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Name of service to start stop, query"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.filename.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "T1118.dll"
+                    ],
+                    "contains": [
+                        "file name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.filename.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.filename.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "location of the payload"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.payload.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "hello.c"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.payload.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.payload.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "hello.c payload"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.comment.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "Evil Account"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.comment.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "String"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.comment.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Comment to record when creating the user"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.username.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "evil_user"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.username.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "String"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.username.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Username of the user to create"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.realname.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "Evil Account"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.realname.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "String"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.realname.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "'realname' to record when creating the user"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.output_filename.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "/tmp/evil"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.output_filename.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.output_filename.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "output path of file"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.script.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "/path/to/script.py"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.script.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.script.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "path to script"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.input_file_users.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "DomainUsers.txt"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.input_file_users.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.input_file_users.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path to a file containing a list of users that we will attempt to brute force"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.domain.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "YOUR_COMPANY"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.domain.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "String"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.domain.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Domain name of the target system we will brute force upon"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.remote_host.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "\\\\COMPANYDC1\\IPC$"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.remote_host.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "String"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.remote_host.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Hostname of the target system we will brute force upon"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.input_file_passwords.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "passwords.txt"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.input_file_passwords.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.input_file_passwords.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path to a file containing a list of passwords we will attempt to brute force with"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.script_command.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "cmd.exe /c calc.exe"
+                    ],
+                    "contains": [
+                        "file name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.script_command.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "String"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.script_command.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Command To Execute"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.url.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "http://www.example.com/file.sct"
+                    ],
+                    "contains": [
+                        "url"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.url.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Url"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.url.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "URL to hosted sct file"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.dll_name.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "payload.dll"
+                    ],
+                    "contains": [
+                        "file name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.dll_name.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.dll_name.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Name of DLL to Execute, DLL Should export DllRegisterServer"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.ntlm.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "cc36cf7a8514893efccd3324464tkg1a"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.ntlm.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "string"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.ntlm.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "ntlm hash"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.user.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "Administrator"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.user.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "string"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.user.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "username"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.filepath.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "c:\\key.log"
+                    ],
+                    "contains": [
+                        "file path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.filepath.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.filepath.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Name of the local file, include path."
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.path.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "c:\\ADS\\"
+                    ],
+                    "contains": [
+                        "file path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.path.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.path.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path of ADS file"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.target_executable.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "osk.exe"
+                    ],
+                    "contains": [
+                        "file name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.target_executable.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "String"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.target_executable.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "File You Want To Attach cmd To"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.target_filename.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.target_filename.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path of file that we are going to stomp on last access time"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.inf_file_path.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "T1191.inf"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.inf_file_path.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.inf_file_path.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path to the INF file"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.dll_payload.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "T1055.dll"
+                    ],
+                    "contains": [
+                        "file name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.dll_payload.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.dll_payload.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "DLL to Inject"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.process_id.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "$pid"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.process_id.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Int"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.process_id.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "PID of input_arguments"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.password.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "P@ssw0rd1"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.password.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "String"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.password.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Password"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.process.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "calc.exe"
+                    ],
+                    "contains": [
+                        "file name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.process.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "string"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.process.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Process to execute"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.payload_path.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "c:\\temp\\payload.dll"
+                    ],
+                    "contains": [
+                        "file path",
+                        "file name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.payload_path.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.payload_path.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path to payload"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.payload_cpl_path.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "C:\\Windows\\system32\\javacpl.cpl -c Java"
+                    ],
+                    "contains": [
+                        "file path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.payload_cpl_path.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.payload_cpl_path.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path to payload"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.registry_file.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "T1103.reg"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.registry_file.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.registry_file.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Windows Registry File"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.remote_script.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "https://raw.githubusercontent.com/mattifestation/PowerSploit/master/Exfiltration/Invoke-Mimikatz.ps1"
+                    ],
+                    "contains": [
+                        "url"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.remote_script.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Url"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.remote_script.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "URL to a remote Mimikatz script that dumps credentials"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.mimurl.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "https://raw.githubusercontent.com/mattifestation/PowerSploit/master/Exfiltration/Invoke-Mimikatz.ps1"
+                    ],
+                    "contains": [
+                        "url"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.mimurl.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "url"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.mimurl.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Mimikatz url"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.bloodurl.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "https://raw.githubusercontent.com/BloodHoundAD/BloodHound/master/Ingestors/BloodHound_Old.ps1"
+                    ],
+                    "contains": [
+                        "url"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.bloodurl.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "url"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.bloodurl.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "BloodHound URL"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.rootkit_file.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "Module.ko"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.rootkit_file.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "String"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.rootkit_file.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path To Module"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.app_path.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "myapp.app"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.app_path.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.app_path.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path to app to be used"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.helper_file.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "C:\\Path\\file.dll"
+                    ],
+                    "contains": [
+                        "file path",
+                        "file name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.helper_file.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.helper_file.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path to DLL"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.attack_link",
+                    "data_type": "string",
+                    "example_values": [
+                        "https://attack.mitre.org/wiki/Technique/T1115"
+                    ],
+                    "contains": [
+                        "url"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.target_binary.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "winword.exe"
+                    ],
+                    "contains": [
+                        "file name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.target_binary.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.target_binary.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Binary To Attach To"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.payload_binary.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "cmd.exe"
+                    ],
+                    "contains": [
+                        "file name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.payload_binary.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.payload_binary.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Binary To Execute"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.file_name.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "C:\\Atomic\\T1179x64.dll"
+                    ],
+                    "contains": [
+                        "file path",
+                        "file name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.file_name.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.file_name.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Dll To Inject"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.evil_command.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "whoami"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.evil_command.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "String"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.evil_command.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Command to run after shell history collection is disabled"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.input_file.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "C:\\*"
+                    ],
+                    "contains": [
+                        "file path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.input_file.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.input_file.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path that should be compressed into our output file"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.bash_history_filename.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "~/.bash_history"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.bash_history_filename.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.bash_history_filename.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path of the bash history file to capture"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.bash_history_grep_args.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "-e '-p ' -e 'pass' -e 'ssh'"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.bash_history_grep_args.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.bash_history_grep_args.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "grep arguments that filter out specific commands we want to capture"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.file_url.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "hhttps://raw.githubusercontent.com/redcanaryco/atomic-red-team/master/atomics/T1085/T1085.sct"
+                    ],
+                    "contains": [
+                        "url"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.file_url.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Url"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.file_url.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "location of the payload"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.executable.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "c:\\file.exe"
+                    ],
+                    "contains": [
+                        "file path",
+                        "file name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.executable.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.executable.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "name of executable"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.target_user.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "SYSTEM"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.target_user.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "String"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.target_user.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Username To Steal Token From"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.task_command.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "C:\\windows\\system32\\cmd.exe"
+                    ],
+                    "contains": [
+                        "file path",
+                        "file name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.task_command.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "String"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.task_command.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "What you want to execute"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.time.default",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1210
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.time.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "String"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.time.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "What time 24 Hour"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.target.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "localhost"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.target.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "String"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.target.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Target"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.command_to_execute.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "C:\\Path\\AtomicRedTeam.exe"
+                    ],
+                    "contains": [
+                        "file path",
+                        "file name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.command_to_execute.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.command_to_execute.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Thing to Run"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.thing_to_execute.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "C:\\Path\\AtomicRedTeam.dll"
+                    ],
+                    "contains": [
+                        "file path",
+                        "file name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.thing_to_execute.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.thing_to_execute.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Thing to Run"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.target_exenstion_handler.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "C:\\Program Files\\Windows Media Player\\wmplayer.exe"
+                    ],
+                    "contains": [
+                        "file path",
+                        "file name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.target_exenstion_handler.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.target_exenstion_handler.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Thing To Open"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.extension_to_change.default",
+                    "data_type": "string",
+                    "example_values": [
+                        ".wav"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.extension_to_change.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "String"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.extension_to_change.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "File Extension To Hijack"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.duration_hms.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "0000:00:30"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.duration_hms.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.duration_hms.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Duration of audio to be recorded (in h:m:s format)"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.key_filename.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "rootCA.key"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.key_filename.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.key_filename.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Key we create that is used to create the CA certificate"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.cert_filename.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "rootCA.crt"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.cert_filename.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.cert_filename.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Path of the CA certificate we create"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.share_name.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "C$"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.share_name.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "String"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.share_name.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Examples C$, IPC$, Admin$"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.log_name.default",
+                    "data_type": "string",
+                    "example_values": [
+                        "System"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.log_name.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "String"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.atomic_tests.*.input_arguments.log_name.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Windows Log Name, ex System"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.total techniques",
+                    "data_type": "numeric",
+                    "example_values": [
+                        95
+                    ]
+                }
+            ],
+            "render": {
+                "type": "table"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "update repo",
+            "identifier": "update_repo",
+            "description": "Update current listing of modules from source",
+            "verbose": "",
+            "type": "generic",
+            "read_only": true,
+            "parameters": {},
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "column_name": "status",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric"
+                }
+            ],
+            "render": {
+                "type": "table"
+            },
+            "versions": "EQ(*)"
+        }
+    ]
+}
