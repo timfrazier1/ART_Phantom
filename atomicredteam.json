@@ -2036,6 +2036,7 @@
                     "data_type": "string",
                     "required": false,
                     "contains": [
+                        "file name"
                     ],
                     "order": 1
                 },
@@ -2044,8 +2045,6 @@
                     "data_type": "boolean",
                     "required": true,
                     "default": false,
-                    "contains": [
-                    ],
                     "order": 2
                 }
             },
@@ -2053,20 +2052,150 @@
                 {
                     "data_path": "action_result.status",
                     "data_type": "string",
-                    "column_name": "status",
-                    "column_order": 0
+                    "example_values": [
+                        "success"
+                    ]
                 },
                 {
                     "data_path": "action_result.message",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "Total payloads: 2"
+                    ]
                 },
                 {
                     "data_path": "summary.total_objects",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
                 },
                 {
                     "data_path": "summary.total_objects_successful",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.hash",
+                    "data_type": "string",
+                    "example_values": [
+                        "5b655e43e4343a9698135be78037856fd45969c7"
+                    ],
+                    "contains": [
+                        "sha1"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.succeeded",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.file_name",
+                    "data_type": "string",
+                    "column_name": "File Name",
+                    "column_order": 0,
+                    "example_values": [
+                        "T1179.dll"
+                    ],
+                    "contains": [
+                        "file name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.id",
+                    "data_type": "numeric",
+                    "example_values": [
+                        30
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.vault_id",
+                    "data_type": "string",
+                    "column_name": "Vault ID",
+                    "column_order": 2,
+                    "example_values": [
+                        "5b655e43e4343a9698135be78037856fd45969c7"
+                    ],
+                    "contains": [
+                        "vault id",
+                        "sha1"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.container",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1674
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "success"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.file_path",
+                    "data_type": "string",
+                    "column_name": "File Path",
+                    "column_order": 3,
+                    "example_values": [
+                        "/opt/phantom/tmp/atomic_repo/atomics/T1179/src/Win32/T1179.dll"
+                    ],
+                    "contains": [
+                        "file name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.size",
+                    "data_type": "numeric",
+                    "column_name": "Size",
+                    "column_order": 1,
+                    "example_values": [
+                        82944
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.file_name",
+                    "data_type": "string",
+                    "example_values": [
+                        "T1179.dll"
+                    ],
+                    "contains": [
+                        "file name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.attack_id",
+                    "data_type": "string",
+                    "contains": [
+                        "mitre attack id"
+                    ],
+                    "example_values": [
+                        "T1179"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.get_all",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.total payloads",
+                    "data_type": "numeric",
+                    "example_values": [
+                        2
+                    ]
                 }
             ],
             "render": {
