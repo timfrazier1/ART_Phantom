@@ -6,6 +6,7 @@
 import phantom.app as phantom
 from phantom.base_connector import BaseConnector
 from phantom.action_result import ActionResult
+from phantom.vault import Vault
 
 # Usage of the consts file is recommended
 # from atomicredteam_consts import *
@@ -16,6 +17,7 @@ from git import Repo
 import os
 import yaml
 import ast
+import shutil
 
 
 class RetVal(tuple):
@@ -79,8 +81,7 @@ class AtomicRedTeamConnector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
         attack_id_file = param['attack_id'] + '.yaml'
         supported_os = param['supported_os']
-        input_args = param.get('input_arguments', {})
-        use_arg_defaults = param.get('use_arg_defaults', True)
+        input_args = param.get('input_arguments', '')
 
         for sub_dir, dirs, files in os.walk(self._atomic_dir + '/atomics'):
             for each in files:
@@ -91,7 +92,7 @@ class AtomicRedTeamConnector(BaseConnector):
                         for each_test in yaml_data['atomic_tests']:
                             formatted_test = {'attack_technique': yaml_data['attack_technique']}
                             if supported_os in each_test['supported_platforms']:
-                                if use_arg_defaults:
+                                if input_args == '':
                                     try:
                                         input_arguments = each_test['input_arguments']
                                     except Exception as e:
@@ -103,14 +104,16 @@ class AtomicRedTeamConnector(BaseConnector):
                                         return action_result.set_status(phantom.APP_ERROR, "Error evaluating argument list as JSON: ".format(str(e)))
 
                                 executor = each_test['executor']['command']
+                                arg_types = []
                                 for k, v in input_arguments.iteritems():
                                     var_sub = '#{' + k + '}'
-                                    if use_arg_defaults:
+                                    if input_args == '':
                                         executor = executor.replace(var_sub, v['default'])
+                                        arg_types.append(v['type'])
                                     else:
                                         executor = executor.replace(var_sub, v)
 
-                                formatted_test['executor'] = {'command': executor, 'name': each_test['executor']['name']}
+                                formatted_test['executor'] = {'command': executor, 'name': each_test['executor']['name'], 'arg_types': arg_types}
                                 action_result.add_data(formatted_test)
                     except yaml.YAMLError as e:
                         pass
@@ -183,7 +186,7 @@ class AtomicRedTeamConnector(BaseConnector):
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
-    def _handle_update_repo(self, param):
+    def _handle_get_payload(self, param):
 
         # Implement the handler here
         # use self.save_progress(...) to send progress messages back to the platform
@@ -191,44 +194,44 @@ class AtomicRedTeamConnector(BaseConnector):
 
         # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
+        attack_id_file = param['attack_id'] + '.yaml'
+        file_name_to_get = param.get('file_name', None)
+        get_all = param['get_all']
 
-        """
-        # Access action parameters passed in the 'param' dictionary
-
-        # Required values can be accessed directly
-        required_parameter = param['required_parameter']
-
-        # Optional values should use the .get() function
-        optional_parameter = param.get('optional_parameter', 'default_value')
-        """
-
-        """
-        # make rest call
-        ret_val, response = self._make_rest_call('/endpoint', action_result, params=None, headers=None)
-
-        if (phantom.is_fail(ret_val)):
-            # the call to the 3rd party device or service failed, action result should contain all the error details
-            # so just return from here
-            return action_result.get_status()
-
-        # Now post process the data,  uncomment code as you deem fit
-
-        # Add the response into the data section
-        # action_result.add_data(response)
-        """
-
-        action_result.add_data({})
+        for sub_dir, dirs, files in os.walk(self._atomic_dir + '/atomics'):
+            for each in files:
+                old_path = sub_dir + '/src/'
+                new_path = '/opt/phantom/vault/tmp/'
+                if each == attack_id_file and file_name_to_get is not None:
+                    try:
+                        for local_dir, src_dirs, payload_names in os.walk(old_path):
+                            for each_payload in payload_names:
+                                if each_payload == file_name_to_get:
+                                    shutil.copy2(local_dir + '/' + file_name_to_get, new_path)
+                                    vault_results = Vault.add_attachment(new_path + file_name_to_get, self.get_container_id(), file_name=file_name_to_get)
+                                    vault_results['file_name'] = file_name_to_get
+                                    vault_results['file_path'] = local_dir + '/' + file_name_to_get
+                                    action_result.add_data(vault_results)
+                                    self.save_progress("Vault_results: " + str(vault_results))
+                    except Exception as e:
+                        return action_result.set_status(phantom.APP_ERROR, "Error finding file and attaching to vault: ".format(str(e)))
+                elif each == attack_id_file and get_all:
+                    try:
+                        for local_dir, src_dirs, payload_names in os.walk(old_path):
+                            for each_payload in payload_names:
+                                shutil.copy2(local_dir + '/' + each_payload, new_path)
+                                vault_results = Vault.add_attachment(new_path + each_payload, self.get_container_id(), file_name=each_payload)
+                                vault_results['file_name'] = local_dir + '/' + each_payload
+                                action_result.add_data(vault_results)
+                                self.save_progress("Vault_results: " + str(vault_results))
+                    except Exception as e:
+                        return action_result.set_status(phantom.APP_ERROR, "Error copying all files in src directory".format(str(e)))
 
         # Add a dictionary that is made up of the most important values from data into the summary
         summary = action_result.update_summary({})
-        summary['important_data'] = "value"
+        summary['total payloads'] = action_result.get_data_size()
 
-        # Return success, no need to set the message, only the status
-        # BaseConnector will create a textual message based off of the summary dictionary
-        # return action_result.set_status(phantom.APP_SUCCESS)
-
-        # For now return Error with a message, in case of success we don't set the message, but use the summary
-        return action_result.set_status(phantom.APP_ERROR, "Action not yet implemented")
+        return action_result.set_status(phantom.APP_SUCCESS)
 
     def handle_action(self, param):
 
@@ -253,6 +256,9 @@ class AtomicRedTeamConnector(BaseConnector):
 
         elif action_id == 'update_repo':
             ret_val = self._handle_test_connectivity(param)
+
+        elif action_id == 'get_payload':
+            ret_val = self._handle_get_payload(param)
 
         return ret_val
 
