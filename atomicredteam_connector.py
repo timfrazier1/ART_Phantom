@@ -1,4 +1,8 @@
-# -----------------------------------------
+# File: atomicredteam_connector.py
+# Copyright (c) 2018 Splunk Inc.
+#
+# SPLUNK CONFIDENTIAL – Use or disclosure of this material in whole or in part
+# without a valid written license from Splunk Inc. is PROHIBITED.# -----------------------------------------
 # Phantom sample App Connector python file
 # -----------------------------------------
 
@@ -33,7 +37,7 @@ class AtomicRedTeamConnector(BaseConnector):
         super(AtomicRedTeamConnector, self).__init__()
 
         self._state = None
-        self._atomic_dir = '/opt/phantom/tmp/atomic_repo'
+        # self._atomic_dir = '/opt/phantom/tmp/atomic_repo'
 
     def _handle_test_connectivity(self, param):
 
@@ -83,7 +87,7 @@ class AtomicRedTeamConnector(BaseConnector):
         supported_os = param['supported_os']
         input_args = param.get('input_arguments', '')
 
-        for sub_dir, dirs, files in os.walk(self._atomic_dir + '/atomics'):
+        for sub_dir, dirs, files in os.walk(os.path.join(self._atomic_dir, 'atomics')):
             for each in files:
                 if each == attack_id_file:
                     f = open(sub_dir + '/' + each, 'r')
@@ -178,7 +182,6 @@ class AtomicRedTeamConnector(BaseConnector):
                         pass
                     except Exception as e:
                         return action_result.set_status(phantom.APP_ERROR, "Error adding YAML data to results: ".format(str(e)))
-                        # return action_result.set_status(phantom.APP_ERROR, "Error parsing YAML file:".format(str(e)))
 
         # Add a dictionary that is made up of the most important values from data into the summary
         summary = action_result.update_summary({})
@@ -221,7 +224,8 @@ class AtomicRedTeamConnector(BaseConnector):
                             for each_payload in payload_names:
                                 shutil.copy2(local_dir + '/' + each_payload, new_path)
                                 vault_results = Vault.add_attachment(new_path + each_payload, self.get_container_id(), file_name=each_payload)
-                                vault_results['file_name'] = local_dir + '/' + each_payload
+                                vault_results['file_path'] = local_dir + '/' + each_payload
+                                vault_results['file_name'] = each_payload
                                 action_result.add_data(vault_results)
                                 self.save_progress("Vault_results: " + str(vault_results))
                     except Exception as e:
@@ -264,24 +268,12 @@ class AtomicRedTeamConnector(BaseConnector):
 
     def initialize(self):
 
-        # Load the state in initialize, use it to store data
-        # that needs to be accessed across actions
         self._state = self.load_state()
 
         # get the asset config
         config = self.get_config()
-
-        """
-        # Access values in asset config by the name
-
-        # Required values can be accessed directly
-        required_config_name = config['required_config_name']
-
-        # Optional values should use the .get() function
-        optional_config_name = config.get('optional_config_name')
-        """
-
         self._base_url = config.get('base_url', 'https://github.com/redcanaryco/atomic-red-team.git')
+        self._atomic_dir = os.path.join(self.get_state_dir(), 'atomic_repo')
 
         return phantom.APP_SUCCESS
 
