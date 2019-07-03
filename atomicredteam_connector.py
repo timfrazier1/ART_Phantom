@@ -96,6 +96,10 @@ class AtomicRedTeamConnector(BaseConnector):
                         for each_test in yaml_data['atomic_tests']:
                             formatted_test = {'attack_technique': yaml_data['attack_technique']}
                             if supported_os in each_test['supported_platforms']:
+                                if 'input_arguments' not in each_test:
+                                    formatted_test['executor'] = {'command': each_test['executor']['command'], 'name': each_test['executor']['name'], 'arg_types': 'None'}
+                                    action_result.add_data(formatted_test)
+                                    continue
                                 if input_args == '':
                                     try:
                                         input_arguments = each_test['input_arguments']
