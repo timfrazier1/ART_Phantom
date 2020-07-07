@@ -99,7 +99,10 @@ class AtomicRedTeamConnector(BaseConnector):
                                 formatted_test = {'attack_technique': yaml_data['attack_technique']}
                                 if supported_os in each_test['supported_platforms']:
                                     if 'input_arguments' not in each_test:
-                                        formatted_test['executor'] = {'command': each_test['executor']['command'], 'name': each_test['executor']['name'], 'arg_types': 'None'}
+                                        if each_test['executor'].get('cleanup_command') is not None:
+                                            formatted_test['executor'] = {'command': each_test['executor']['command'], 'cleanup_command': each_test['executor']['cleanup_command'], 'name': each_test['executor']['name'], 'arg_types': 'None'}  # noqa
+                                        else:
+                                            formatted_test['executor'] = {'command': each_test['executor']['command'], 'name': each_test['executor']['name'], 'arg_types': 'None'}
                                         action_result.add_data(formatted_test)
                                         continue
                                     if input_args == '':
@@ -123,7 +126,21 @@ class AtomicRedTeamConnector(BaseConnector):
                                         else:
                                             executor = executor.replace(var_sub, v)
 
-                                    formatted_test['executor'] = {'command': executor, 'name': each_test['executor']['name'], 'arg_types': arg_types}
+                                    if each_test['executor'].get('cleanup_command') is not None:
+                                        cleanup = each_test['executor']['cleanup_command']
+                                        arg_types = []
+                                        for k, v in input_arguments.iteritems():
+                                            var_sub = '#{' + k + '}'
+                                            if input_args == '':
+                                                cleanup = cleanup.replace(var_sub, v['default'])
+                                                arg_types.append(v['type'])
+                                            else:
+                                                cleanup = cleanup.replace(var_sub, v)
+
+                                    if each_test['executor'].get('cleanup_command') is not None:
+                                        formatted_test['executor'] = {'command': executor, 'cleanup_command': cleanup, 'name': each_test['executor']['name'], 'arg_types': arg_types}  # noqa
+                                    else:
+                                        formatted_test['executor'] = {'command': executor, 'name': each_test['executor']['name'], 'arg_types': arg_types}
                                     action_result.add_data(formatted_test)
                         except yaml.YAMLError as e:
                             pass
