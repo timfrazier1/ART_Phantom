@@ -1,8 +1,9 @@
 # File: atomicredteam_connector.py
-# Copyright (c) 2018 Splunk Inc.
+# Copyright(c) 2018 Splunk Inc.
 #
-# SPLUNK CONFIDENTIAL – Use or disclosure of this material in whole or in part
-# without a valid written license from Splunk Inc. is PROHIBITED.# -----------------------------------------
+# SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
+# without a valid written license from Splunk Inc. is PROHIBITED.
+# -----------------------------------------
 # Phantom sample App Connector python file
 # -----------------------------------------
 
@@ -83,51 +84,52 @@ class AtomicRedTeamConnector(BaseConnector):
 
         # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
-        attack_id_file = param['attack_id'] + '.yaml'
+        attack_id = param['attack_id']
         supported_os = param['supported_os']
         input_args = param.get('input_arguments', '')
 
         for sub_dir, dirs, files in os.walk(os.path.join(self._atomic_dir, 'atomics')):
-            for each in files:
-                if each == attack_id_file:
-                    f = open(sub_dir + '/' + each, 'r')
-                    try:
-                        yaml_data = yaml.load(f)
-                        for each_test in yaml_data['atomic_tests']:
-                            formatted_test = {'attack_technique': yaml_data['attack_technique']}
-                            if supported_os in each_test['supported_platforms']:
-                                if 'input_arguments' not in each_test:
-                                    formatted_test['executor'] = {'command': each_test['executor']['command'], 'name': each_test['executor']['name'], 'arg_types': 'None'}
-                                    action_result.add_data(formatted_test)
-                                    continue
-                                if input_args == '':
-                                    try:
-                                        input_arguments = each_test['input_arguments']
-                                    except Exception as e:
-                                        return action_result.set_status(phantom.APP_ERROR, "Error using default arguments: ".format(str(e)))
-                                else:
-                                    try:
-                                        input_arguments = ast.literal_eval(input_args)
-                                    except Exception as e:
-                                        return action_result.set_status(phantom.APP_ERROR, "Error evaluating argument list as JSON: ".format(str(e)))
-
-                                executor = each_test['executor']['command']
-                                arg_types = []
-                                for k, v in input_arguments.iteritems():
-                                    var_sub = '#{' + k + '}'
+            if attack_id in sub_dir:
+                for each in files:
+                    if '.yaml' in each:
+                        f = open(sub_dir + '/' + each, 'r')
+                        try:
+                            yaml_data = yaml.load(f)
+                            for each_test in yaml_data['atomic_tests']:
+                                formatted_test = {'attack_technique': yaml_data['attack_technique']}
+                                if supported_os in each_test['supported_platforms']:
+                                    if 'input_arguments' not in each_test:
+                                        formatted_test['executor'] = {'command': each_test['executor']['command'], 'name': each_test['executor']['name'], 'arg_types': 'None'}
+                                        action_result.add_data(formatted_test)
+                                        continue
                                     if input_args == '':
-                                        executor = executor.replace(var_sub, v['default'])
-                                        arg_types.append(v['type'])
+                                        try:
+                                            input_arguments = each_test['input_arguments']
+                                        except Exception as e:
+                                            return action_result.set_status(phantom.APP_ERROR, "Error using default arguments: ".format(str(e)))
                                     else:
-                                        executor = executor.replace(var_sub, v)
+                                        try:
+                                            input_arguments = ast.literal_eval(input_args)
+                                        except Exception as e:
+                                            return action_result.set_status(phantom.APP_ERROR, "Error evaluating argument list as JSON: ".format(str(e)))
 
-                                formatted_test['executor'] = {'command': executor, 'name': each_test['executor']['name'], 'arg_types': arg_types}
-                                action_result.add_data(formatted_test)
-                    except yaml.YAMLError as e:
-                        pass
-                    except Exception as e:
-                        return action_result.set_status(phantom.APP_ERROR, "Error adding YAML data to results: ".format(str(e)))
-                        # return action_result.set_status(phantom.APP_ERROR, "Error parsing YAML file:".format(str(e)))
+                                    executor = each_test['executor']['command']
+                                    arg_types = []
+                                    for k, v in input_arguments.iteritems():
+                                        var_sub = '#{' + k + '}'
+                                        if input_args == '':
+                                            executor = executor.replace(var_sub, v['default'])
+                                            arg_types.append(v['type'])
+                                        else:
+                                            executor = executor.replace(var_sub, v)
+
+                                    formatted_test['executor'] = {'command': executor, 'name': each_test['executor']['name'], 'arg_types': arg_types}
+                                    action_result.add_data(formatted_test)
+                        except yaml.YAMLError as e:
+                            pass
+                        except Exception as e:
+                            return action_result.set_status(phantom.APP_ERROR, "Error adding YAML data to results: ".format(str(e)))
+                            # return action_result.set_status(phantom.APP_ERROR, "Error parsing YAML file:".format(str(e)))
 
         # Add a dictionary that is made up of the most important values from data into the summary
         summary = action_result.update_summary({})
@@ -143,22 +145,23 @@ class AtomicRedTeamConnector(BaseConnector):
 
         # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
-        attack_id_file = param['attack_id'] + '.yaml'
+        attack_id = param['attack_id']
 
         for sub_dir, dirs, files in os.walk(self._atomic_dir + '/atomics'):
-            for each in files:
-                if each == attack_id_file:
-                    f = open(sub_dir + '/' + each, 'r')
-                    try:
-                        yaml_data = yaml.load(f)
-                        for each_test in yaml_data['atomic_tests']:
-                            each_test['attack_technique'] = yaml_data['attack_technique']
-                            action_result.add_data(each_test)
-                    except yaml.YAMLError as e:
-                        pass
-                    except Exception as e:
-                        return action_result.set_status(phantom.APP_ERROR, "Error adding YAML data to results: ".format(str(e)))
-                        # return action_result.set_status(phantom.APP_ERROR, "Error parsing YAML file:".format(str(e)))
+            if attack_id in sub_dir:
+                for each in files:
+                    if '.yaml' in each:
+                        f = open(sub_dir + '/' + each, 'r')
+                        try:
+                            yaml_data = yaml.load(f)
+                            for each_test in yaml_data['atomic_tests']:
+                                each_test['attack_technique'] = yaml_data['attack_technique']
+                                action_result.add_data(each_test)
+                        except yaml.YAMLError as e:
+                            pass
+                        except Exception as e:
+                            return action_result.set_status(phantom.APP_ERROR, "Error adding YAML data to results: ".format(str(e)))
+                            # return action_result.set_status(phantom.APP_ERROR, "Error parsing YAML file:".format(str(e)))
 
         # Add a dictionary that is made up of the most important values from data into the summary
         summary = action_result.update_summary({})
@@ -201,39 +204,40 @@ class AtomicRedTeamConnector(BaseConnector):
 
         # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
-        attack_id_file = param['attack_id'] + '.yaml'
         file_name_to_get = param.get('file_name', None)
         get_all = param['get_all']
+        attack_id = param['attack_id']
 
         for sub_dir, dirs, files in os.walk(self._atomic_dir + '/atomics'):
-            for each in files:
-                old_path = sub_dir + '/src/'
-                new_path = '/opt/phantom/vault/tmp/'
-                if each == attack_id_file and file_name_to_get is not None:
-                    try:
-                        for local_dir, src_dirs, payload_names in os.walk(old_path):
-                            for each_payload in payload_names:
-                                if each_payload == file_name_to_get:
-                                    shutil.copy2(local_dir + '/' + file_name_to_get, new_path)
-                                    vault_results = Vault.add_attachment(new_path + file_name_to_get, self.get_container_id(), file_name=file_name_to_get)
-                                    vault_results['file_name'] = file_name_to_get
-                                    vault_results['file_path'] = local_dir + '/' + file_name_to_get
+            if attack_id in sub_dir:
+                for each in files:
+                    old_path = sub_dir + '/src/'
+                    new_path = '/opt/phantom/vault/tmp/'
+                    if 'yaml' in each and file_name_to_get is not None:
+                        try:
+                            for local_dir, src_dirs, payload_names in os.walk(old_path):
+                                for each_payload in payload_names:
+                                    if each_payload == file_name_to_get:
+                                        shutil.copy2(local_dir + '/' + file_name_to_get, new_path)
+                                        vault_results = Vault.add_attachment(new_path + file_name_to_get, self.get_container_id(), file_name=file_name_to_get)
+                                        vault_results['file_name'] = file_name_to_get
+                                        vault_results['file_path'] = local_dir + '/' + file_name_to_get
+                                        action_result.add_data(vault_results)
+                                        self.save_progress("Vault_results: " + str(vault_results))
+                        except Exception as e:
+                            return action_result.set_status(phantom.APP_ERROR, "Error finding file and attaching to vault: ".format(str(e)))
+                    if 'yaml' in each and get_all:
+                        try:
+                            for local_dir, src_dirs, payload_names in os.walk(old_path):
+                                for each_payload in payload_names:
+                                    shutil.copy2(local_dir + '/' + each_payload, new_path)
+                                    vault_results = Vault.add_attachment(new_path + each_payload, self.get_container_id(), file_name=each_payload)
+                                    vault_results['file_path'] = local_dir + '/' + each_payload
+                                    vault_results['file_name'] = each_payload
                                     action_result.add_data(vault_results)
                                     self.save_progress("Vault_results: " + str(vault_results))
-                    except Exception as e:
-                        return action_result.set_status(phantom.APP_ERROR, "Error finding file and attaching to vault: ".format(str(e)))
-                elif each == attack_id_file and get_all:
-                    try:
-                        for local_dir, src_dirs, payload_names in os.walk(old_path):
-                            for each_payload in payload_names:
-                                shutil.copy2(local_dir + '/' + each_payload, new_path)
-                                vault_results = Vault.add_attachment(new_path + each_payload, self.get_container_id(), file_name=each_payload)
-                                vault_results['file_path'] = local_dir + '/' + each_payload
-                                vault_results['file_name'] = each_payload
-                                action_result.add_data(vault_results)
-                                self.save_progress("Vault_results: " + str(vault_results))
-                    except Exception as e:
-                        return action_result.set_status(phantom.APP_ERROR, "Error copying all files in src directory".format(str(e)))
+                        except Exception as e:
+                            return action_result.set_status(phantom.APP_ERROR, "Error copying all files in src directory".format(str(e)))
 
         # Add a dictionary that is made up of the most important values from data into the summary
         summary = action_result.update_summary({})
